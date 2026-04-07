@@ -7,16 +7,16 @@ import 'package:taller_movil/features/dashboard/dashboard_page.dart';
 import 'package:taller_movil/services/auth_service.dart';
 
 void main() {
-  runApp(const TallerApp());
+  runApp(const RutaSegura());
 }
 
-class TallerApp extends StatelessWidget {
-  const TallerApp({super.key});
+class RutaSegura extends StatelessWidget {
+  const RutaSegura({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TallerApp',
+      title: 'RutaSegura',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),

@@ -42,7 +42,7 @@ class _DashboardPageState extends State<DashboardPage> {
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
-          'TallerApp',
+          'RutaSegura',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
         ),
         actions: [

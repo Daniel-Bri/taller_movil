@@ -64,7 +64,7 @@ class _RegistrarsePageState extends State<RegistrarsePage> {
             child: Column(
               children: [
                 const Text(
-                  'TallerApp',
+                  'RutaSegura',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w800,

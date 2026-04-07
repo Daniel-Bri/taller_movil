@@ -3,6 +3,6 @@ import 'package:taller_movil/main.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const TallerApp());
+    await tester.pumpWidget(const RutaSegura());
   });
 }

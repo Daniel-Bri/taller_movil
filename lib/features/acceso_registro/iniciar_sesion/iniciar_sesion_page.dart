@@ -51,7 +51,7 @@ class _IniciarSesionPageState extends State<IniciarSesionPage> {
             child: Column(
               children: [
                 const Text(
-                  'TallerApp',
+                  'RutaSegura',
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.w800,
