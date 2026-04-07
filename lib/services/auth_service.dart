@@ -1,0 +1,77 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AuthService {
+  static const _baseUrl   = 'http://10.0.2.2:8000/api/acceso';
+  static const _tokenKey  = 'access_token';
+  static const _userKey   = 'taller_user';
+
+  // ── CU02 - Iniciar sesión ────────────────────────────────
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final res = await http.post(
+      Uri.parse('$_baseUrl/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      await _saveSession(data);
+      return data;
+    }
+    final err = jsonDecode(res.body);
+    throw Exception(err['detail'] ?? 'Error al iniciar sesión');
+  }
+
+  // ── CU01 - Registrarse ───────────────────────────────────
+  Future<Map<String, dynamic>> register({
+    required String email,
+    required String username,
+    required String password,
+    String? fullName,
+  }) async {
+    final body = <String, dynamic>{
+      'email': email,
+      'username': username,
+      'password': password,
+      if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+    };
+    final res = await http.post(
+      Uri.parse('$_baseUrl/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    if (res.statusCode == 201) {
+      final data = jsonDecode(res.body) as Map<String, dynamic>;
+      await _saveSession(data);
+      return data;
+    }
+    final err = jsonDecode(res.body);
+    throw Exception(err['detail'] ?? 'Error al registrarse');
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userKey);
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+
+  Future<bool> isLoggedIn() async => (await getToken()) != null;
+
+  Future<Map<String, dynamic>?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_userKey);
+    return raw != null ? jsonDecode(raw) as Map<String, dynamic> : null;
+  }
+
+  Future<void> _saveSession(Map<String, dynamic> data) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, data['access_token'] as String);
+    await prefs.setString(_userKey, jsonEncode(data['user']));
+  }
+}
