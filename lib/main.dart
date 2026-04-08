@@ -32,7 +32,7 @@ class RutaSegura extends StatelessWidget {
     );
   }
 }
-
+//Splash
 class _SplashRouter extends StatelessWidget {
   const _SplashRouter();
 
