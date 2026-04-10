@@ -34,7 +34,10 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget build(BuildContext context) {
     final name    = _user?['full_name'] ?? _user?['username'] ?? '...';
     final email   = _user?['email'] ?? '';
-    final isAdmin = _user?['is_admin'] == true;
+    final role    = _user?['role'] as String? ?? 'cliente';
+    final isAdmin = role == 'admin';
+    final isTaller  = role == 'taller';
+    final isTecnico = role == 'tecnico';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
     return Drawer(
@@ -68,7 +71,7 @@ class _AppDrawerState extends State<AppDrawer> {
             accountEmail: Row(
               children: [
                 Text(email, style: const TextStyle(fontSize: 12)),
-                if (isAdmin) ...[
+                if (role != 'cliente') ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -76,9 +79,9 @@ class _AppDrawerState extends State<AppDrawer> {
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'Admin',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                    child: Text(
+                      isAdmin ? 'Admin' : isTaller ? 'Taller' : 'Técnico',
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ],
@@ -105,112 +108,179 @@ class _AppDrawerState extends State<AppDrawer> {
 
                 const _SectionDivider(),
 
-                // Acceso y Registro
-                _NavSection(
-                  id: 'acceso',
-                  icon: Icons.manage_accounts_outlined,
-                  label: 'Acceso y Registro',
-                  expanded: _expanded,
-                  onToggle: _toggle,
-                  children: [
-                    _NavChild(label: 'Registrar vehículo',
-                        onTap: () => _navigate('/registrar-vehiculo')),
-                    _NavChild(label: 'Registrar taller',
-                        onTap: () => _navigate('/registrar-taller')),
-                    if (isAdmin)
+                // ── cliente ──────────────────────────────────
+                if (!isTaller && !isTecnico && !isAdmin) ...[
+                  _NavSection(
+                    id: 'acceso',
+                    icon: Icons.manage_accounts_outlined,
+                    label: 'Mi Cuenta',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Mis vehículos',
+                          onTap: () => _navigate('/acceso/mis-vehiculos')),
+                      _NavChild(label: 'Registrar taller',
+                          onTap: () => _navigate('/acceso/registrar-taller')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'emergencias',
+                    icon: Icons.warning_amber_rounded,
+                    label: 'Emergencias',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    iconColor: AppColors.danger,
+                    children: [
+                      _NavChild(label: 'Reportar emergencia',
+                          onTap: () => _navigate('/emergencias/reportar')),
+                      _NavChild(label: 'Enviar ubicación GPS',
+                          onTap: () => _navigate('/emergencias/ubicacion')),
+                      _NavChild(label: 'Adjuntar fotos',
+                          onTap: () => _navigate('/emergencias/fotos')),
+                      _NavChild(label: 'Enviar audio',
+                          onTap: () => _navigate('/emergencias/audio')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'solicitudes',
+                    icon: Icons.assignment_outlined,
+                    label: 'Mis Solicitudes',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Ver estado',
+                          onTap: () => _navigate('/solicitudes/estado')),
+                      _NavChild(label: 'Cancelar solicitud',
+                          onTap: () => _navigate('/solicitudes/cancelar')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'pagos',
+                    icon: Icons.payments_outlined,
+                    label: 'Pagos',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Ver cotización',
+                          onTap: () => _navigate('/pagos/ver')),
+                      _NavChild(label: 'Realizar pago',
+                          onTap: () => _navigate('/pagos/realizar')),
+                    ],
+                  ),
+                ],
+
+                // ── taller ───────────────────────────────────
+                if (isTaller) ...[
+                  _NavSection(
+                    id: 'solicitudes',
+                    icon: Icons.assignment_outlined,
+                    label: 'Solicitudes',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Solicitudes disponibles',
+                          onTap: () => _navigate('/solicitudes/disponibles')),
+                      _NavChild(label: 'Detalle de incidente',
+                          onTap: () => _navigate('/solicitudes/detalle')),
+                      _NavChild(label: 'Aceptar solicitud',
+                          onTap: () => _navigate('/solicitudes/aceptar')),
+                      _NavChild(label: 'Rechazar solicitud',
+                          onTap: () => _navigate('/solicitudes/rechazar')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'talleres',
+                    icon: Icons.build_outlined,
+                    label: 'Talleres y Técnicos',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Gestionar técnicos',
+                          onTap: () => _navigate('/talleres/tecnicos')),
+                      _NavChild(label: 'Asignar técnico',
+                          onTap: () => _navigate('/talleres/asignar-tecnico')),
+                      _NavChild(label: 'Registrar servicio realizado',
+                          onTap: () => _navigate('/talleres/servicio-realizado')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'pagos',
+                    icon: Icons.payments_outlined,
+                    label: 'Cotización y Pagos',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Generar cotización',
+                          onTap: () => _navigate('/pagos/generar')),
+                      _NavChild(label: 'Confirmar cotización',
+                          onTap: () => _navigate('/pagos/confirmar')),
+                      _NavChild(label: 'Ver comisiones',
+                          onTap: () => _navigate('/pagos/comisiones')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'reportes',
+                    icon: Icons.bar_chart_outlined,
+                    label: 'Reportes',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Métricas del taller',
+                          onTap: () => _navigate('/reportes/metricas-taller')),
+                      _NavChild(label: 'Historial de servicios',
+                          onTap: () => _navigate('/reportes/historial')),
+                    ],
+                  ),
+                ],
+
+                // ── tecnico ──────────────────────────────────
+                if (isTecnico) ...[
+                  _NavSection(
+                    id: 'talleres',
+                    icon: Icons.build_outlined,
+                    label: 'Mi Trabajo',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Actualizar estado servicio',
+                          onTap: () => _navigate('/talleres/estado-servicio')),
+                      _NavChild(label: 'Gestionar disponibilidad',
+                          onTap: () => _navigate('/talleres/disponibilidad')),
+                    ],
+                  ),
+                ],
+
+                // ── admin ────────────────────────────────────
+                if (isAdmin) ...[
+                  _NavSection(
+                    id: 'acceso',
+                    icon: Icons.manage_accounts_outlined,
+                    label: 'Gestión',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
                       _NavChild(label: 'Aprobar talleres',
                           onTap: () => _navigate('/aprobar-talleres')),
-                  ],
-                ),
+                      _NavChild(label: 'Gestionar usuarios',
+                          onTap: () => _navigate('/gestionar-usuarios')),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'reportes',
+                    icon: Icons.bar_chart_outlined,
+                    label: 'Reportes',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(label: 'Métricas globales',
+                          onTap: () => _navigate('/reportes/metricas-globales')),
+                      _NavChild(label: 'Auditoría',
+                          onTap: () => _navigate('/reportes/auditoria')),
+                    ],
+                  ),
+                ],
 
-                // Emergencias
-                _NavSection(
-                  id: 'emergencias',
-                  icon: Icons.warning_amber_rounded,
-                  label: 'Emergencias',
-                  expanded: _expanded,
-                  onToggle: _toggle,
-                  iconColor: AppColors.danger,
-                  children: [
-                    _NavChild(label: 'Reportar emergencia',
-                        onTap: () => _navigate('/reportar-emergencia')),
-                    _NavChild(label: 'Enviar ubicación GPS',
-                        onTap: () => _navigate('/emergencias/ubicacion')),
-                    _NavChild(label: 'Adjuntar fotos',
-                        onTap: () => _navigate('/emergencias/fotos')),
-                    _NavChild(label: 'Enviar audio',
-                        onTap: () => _navigate('/emergencias/audio')),
-                    _NavChild(label: 'Agregar descripción',
-                        onTap: () => _navigate('/emergencias/descripcion')),
-                  ],
-                ),
-
-                // Solicitudes
-                _NavSection(
-                  id: 'solicitudes',
-                  icon: Icons.assignment_outlined,
-                  label: 'Solicitudes',
-                  expanded: _expanded,
-                  onToggle: _toggle,
-                  children: [
-                    _NavChild(label: 'Ver estado de solicitud',
-                        onTap: () => _navigate('/solicitudes/estado')),
-                    _NavChild(label: 'Cancelar solicitud',
-                        onTap: () => _navigate('/solicitudes/cancelar')),
-                    _NavChild(label: 'Solicitudes disponibles',
-                        onTap: () => _navigate('/solicitudes/disponibles')),
-                    _NavChild(label: 'Detalle de incidente',
-                        onTap: () => _navigate('/solicitudes/detalle')),
-                    _NavChild(label: 'Aceptar solicitud',
-                        onTap: () => _navigate('/solicitudes/aceptar')),
-                    _NavChild(label: 'Rechazar solicitud',
-                        onTap: () => _navigate('/solicitudes/rechazar')),
-                  ],
-                ),
-
-                // Talleres y Técnicos
-                _NavSection(
-                  id: 'talleres',
-                  icon: Icons.build_outlined,
-                  label: 'Talleres y Técnicos',
-                  expanded: _expanded,
-                  onToggle: _toggle,
-                  children: [
-                    _NavChild(label: 'Asignar técnico',
-                        onTap: () => _navigate('/talleres/asignar-tecnico')),
-                    _NavChild(label: 'Actualizar estado servicio',
-                        onTap: () => _navigate('/talleres/estado-servicio')),
-                    _NavChild(label: 'Gestionar disponibilidad',
-                        onTap: () => _navigate('/talleres/disponibilidad')),
-                    _NavChild(label: 'Registrar servicio realizado',
-                        onTap: () => _navigate('/talleres/servicio-realizado')),
-                    _NavChild(label: 'Gestionar técnicos',
-                        onTap: () => _navigate('/talleres/tecnicos')),
-                  ],
-                ),
-
-                // Cotización y Pagos
-                _NavSection(
-                  id: 'pagos',
-                  icon: Icons.payments_outlined,
-                  label: 'Cotización y Pagos',
-                  expanded: _expanded,
-                  onToggle: _toggle,
-                  children: [
-                    _NavChild(label: 'Generar cotización',
-                        onTap: () => _navigate('/pagos/generar')),
-                    _NavChild(label: 'Ver cotización',
-                        onTap: () => _navigate('/pagos/ver')),
-                    _NavChild(label: 'Confirmar cotización',
-                        onTap: () => _navigate('/pagos/confirmar')),
-                    _NavChild(label: 'Realizar pago',
-                        onTap: () => _navigate('/pagos/realizar')),
-                    _NavChild(label: 'Ver comisiones',
-                        onTap: () => _navigate('/pagos/comisiones')),
-                  ],
-                ),
-
-                // Comunicación
+                // ── común a todos ─────────────────────────────
                 _NavSection(
                   id: 'comunicacion',
                   icon: Icons.chat_bubble_outline,
@@ -218,33 +288,25 @@ class _AppDrawerState extends State<AppDrawer> {
                   expanded: _expanded,
                   onToggle: _toggle,
                   children: [
-                    _NavChild(label: 'Ver técnico en mapa',
-                        onTap: () => _navigate('/comunicacion/mapa')),
                     _NavChild(label: 'Chat',
                         onTap: () => _navigate('/comunicacion/chat')),
                     _NavChild(label: 'Notificaciones',
                         onTap: () => _navigate('/comunicacion/notificaciones')),
+                    _NavChild(label: 'Ver técnico en mapa',
+                        onTap: () => _navigate('/comunicacion/mapa')),
                   ],
                 ),
-
-                // Reportes
                 _NavSection(
-                  id: 'reportes',
-                  icon: Icons.bar_chart_outlined,
-                  label: 'Reportes',
+                  id: 'reportes_comun',
+                  icon: Icons.history_outlined,
+                  label: 'Historial',
                   expanded: _expanded,
                   onToggle: _toggle,
                   children: [
-                    _NavChild(label: 'Calificar servicio',
-                        onTap: () => _navigate('/reportes/calificar')),
                     _NavChild(label: 'Historial de servicios',
                         onTap: () => _navigate('/reportes/historial')),
-                    _NavChild(label: 'Métricas del taller',
-                        onTap: () => _navigate('/reportes/metricas-taller')),
-                    _NavChild(label: 'Métricas globales',
-                        onTap: () => _navigate('/reportes/metricas-globales')),
-                    _NavChild(label: 'Auditoría',
-                        onTap: () => _navigate('/reportes/auditoria')),
+                    _NavChild(label: 'Calificar servicio',
+                        onTap: () => _navigate('/reportes/calificar')),
                   ],
                 ),
 
