@@ -32,7 +32,11 @@ class _DashboardPageState extends State<DashboardPage> {
   String get _userInitial => (_user?['username'] as String? ?? 'U')[0].toUpperCase();
   String get _userName    => _user?['full_name'] ?? _user?['username'] ?? 'Usuario';
   String get _userEmail   => _user?['email'] ?? '';
-  bool   get _isAdmin     => _user?['is_admin'] == true;
+  String get _role        => _user?['role'] as String? ?? 'cliente';
+  bool   get _isAdmin     => _role == 'admin';
+  bool   get _isTaller    => _role == 'taller';
+  bool   get _isTecnico   => _role == 'tecnico';
+  bool   get _isCliente   => _role == 'cliente';
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +47,7 @@ class _DashboardPageState extends State<DashboardPage> {
         userInitial: _userInitial,
         userName: _userName,
         userEmail: _userEmail,
-        isAdmin: _isAdmin,
+        role: _role,
         onLogout: _logout,
       ),
       body: SingleChildScrollView(
@@ -104,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
             const _SectionTitle('Accesos rápidos'),
             const SizedBox(height: 12),
 
-            // Quick cards grid
+            // Quick cards grid — varía según rol
             GridView.count(
               crossAxisCount: 2,
               crossAxisSpacing: 12,
@@ -113,34 +117,126 @@ class _DashboardPageState extends State<DashboardPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                _QuickCard(
-                  icon: Icons.directions_car,
-                  label: 'Mis Vehículos',
-                  iconBg: const Color(0xFFEFF6FF),
-                  iconColor: AppColors.primary,
-                  onTap: () => Navigator.pushNamed(context, '/acceso/mis-vehiculos'),
-                ),
-                _QuickCard(
-                  icon: Icons.store_outlined,
-                  label: 'Registrar Taller',
-                  iconBg: const Color(0xFFECFDF5),
-                  iconColor: AppColors.success,
-                  onTap: () => Navigator.pushNamed(context, '/acceso/registrar-taller'),
-                ),
-                _QuickCard(
-                  icon: Icons.assignment_outlined,
-                  label: 'Ver Solicitudes',
-                  iconBg: const Color(0xFFEFF6FF),
-                  iconColor: AppColors.secondary,
-                  onTap: () {},
-                ),
-                _QuickCard(
-                  icon: Icons.history,
-                  label: 'Historial',
-                  iconBg: const Color(0xFFF5F3FF),
-                  iconColor: const Color(0xFF7C3AED),
-                  onTap: () {},
-                ),
+                if (_isCliente) ...[
+                  _QuickCard(
+                    icon: Icons.directions_car,
+                    label: 'Mis Vehículos',
+                    iconBg: const Color(0xFFEFF6FF),
+                    iconColor: AppColors.primary,
+                    onTap: () => Navigator.pushNamed(context, '/acceso/mis-vehiculos'),
+                  ),
+                  _QuickCard(
+                    icon: Icons.store_outlined,
+                    label: 'Registrar Taller',
+                    iconBg: const Color(0xFFECFDF5),
+                    iconColor: AppColors.success,
+                    onTap: () => Navigator.pushNamed(context, '/acceso/registrar-taller'),
+                  ),
+                  _QuickCard(
+                    icon: Icons.warning_amber_outlined,
+                    label: 'Reportar Emergencia',
+                    iconBg: const Color(0xFFFEF2F2),
+                    iconColor: AppColors.danger,
+                    onTap: () => Navigator.pushNamed(context, '/emergencias/reportar'),
+                  ),
+                  _QuickCard(
+                    icon: Icons.history,
+                    label: 'Historial',
+                    iconBg: const Color(0xFFF5F3FF),
+                    iconColor: const Color(0xFF7C3AED),
+                    onTap: () {},
+                  ),
+                ],
+                if (_isTaller) ...[
+                  _QuickCard(
+                    icon: Icons.assignment_outlined,
+                    label: 'Ver Solicitudes',
+                    iconBg: const Color(0xFFEFF6FF),
+                    iconColor: AppColors.primary,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.people_outline,
+                    label: 'Gestionar Técnicos',
+                    iconBg: const Color(0xFFECFDF5),
+                    iconColor: AppColors.success,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Cotizaciones',
+                    iconBg: const Color(0xFFFEF2F2),
+                    iconColor: AppColors.danger,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.bar_chart_outlined,
+                    label: 'Métricas',
+                    iconBg: const Color(0xFFF5F3FF),
+                    iconColor: const Color(0xFF7C3AED),
+                    onTap: () {},
+                  ),
+                ],
+                if (_isTecnico) ...[
+                  _QuickCard(
+                    icon: Icons.build_outlined,
+                    label: 'Estado Servicio',
+                    iconBg: const Color(0xFFEFF6FF),
+                    iconColor: AppColors.primary,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.event_available_outlined,
+                    label: 'Disponibilidad',
+                    iconBg: const Color(0xFFECFDF5),
+                    iconColor: AppColors.success,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.chat_bubble_outline,
+                    label: 'Chat',
+                    iconBg: const Color(0xFFFEF2F2),
+                    iconColor: AppColors.danger,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.map_outlined,
+                    label: 'Mapa',
+                    iconBg: const Color(0xFFF5F3FF),
+                    iconColor: const Color(0xFF7C3AED),
+                    onTap: () {},
+                  ),
+                ],
+                if (_isAdmin) ...[
+                  _QuickCard(
+                    icon: Icons.verified_outlined,
+                    label: 'Aprobar Talleres',
+                    iconBg: const Color(0xFFECFDF5),
+                    iconColor: AppColors.success,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.manage_accounts_outlined,
+                    label: 'Gestionar Usuarios',
+                    iconBg: const Color(0xFFEFF6FF),
+                    iconColor: AppColors.primary,
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.insights_outlined,
+                    label: 'Métricas Globales',
+                    iconBg: const Color(0xFFF5F3FF),
+                    iconColor: const Color(0xFF7C3AED),
+                    onTap: () {},
+                  ),
+                  _QuickCard(
+                    icon: Icons.policy_outlined,
+                    label: 'Auditoría',
+                    iconBg: const Color(0xFFFEF2F2),
+                    iconColor: AppColors.danger,
+                    onTap: () {},
+                  ),
+                ],
               ],
             ),
 
@@ -228,11 +324,10 @@ class _AppDrawer extends StatefulWidget {
     required this.userInitial,
     required this.userName,
     required this.userEmail,
-    required this.isAdmin,
+    required this.role,
     required this.onLogout,
   });
-  final String userInitial, userName, userEmail;
-  final bool isAdmin;
+  final String userInitial, userName, userEmail, role;
   final VoidCallback onLogout;
 
   @override
@@ -244,6 +339,15 @@ class _AppDrawerState extends State<_AppDrawer> {
 
   void _toggle(String id) => setState(() =>
     _open.contains(id) ? _open.remove(id) : _open.add(id));
+
+  String _roleLabel(String role) {
+    switch (role) {
+      case 'admin':   return 'Administrador';
+      case 'taller':  return 'Taller';
+      case 'tecnico': return 'Técnico';
+      default:        return 'Cliente';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -287,73 +391,142 @@ class _AppDrawerState extends State<_AppDrawer> {
                   onTap: () => Navigator.pop(context),
                 ),
                 const _NavDivider(),
+                // ── cliente ──────────────────────────────────
+                if (widget.role == 'cliente') ...[
+                  _NavSection(
+                    id: 'acceso', label: 'Mi Cuenta',
+                    icon: Icons.manage_accounts_outlined,
+                    isOpen: _open.contains('acceso'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Mis Vehículos',    icon: Icons.directions_car_outlined, route: '/acceso/mis-vehiculos'),
+                      _NavItem(label: 'Registrar Taller', icon: Icons.store_outlined,          route: '/acceso/registrar-taller'),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'emergencias', label: 'Emergencias',
+                    icon: Icons.emergency_outlined,
+                    isOpen: _open.contains('emergencias'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Reportar Emergencia', icon: Icons.warning_amber_outlined, route: '/emergencias/reportar'),
+                      _NavItem(label: 'Enviar Ubicación',    icon: Icons.location_on_outlined),
+                      _NavItem(label: 'Adjuntar Fotos',      icon: Icons.photo_camera_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'solicitudes', label: 'Solicitudes',
+                    icon: Icons.assignment_outlined,
+                    isOpen: _open.contains('solicitudes'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Ver Estado',      icon: Icons.track_changes_outlined),
+                      _NavItem(label: 'Mis Solicitudes', icon: Icons.history_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'pagos', label: 'Pagos',
+                    icon: Icons.receipt_long_outlined,
+                    isOpen: _open.contains('pagos'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Ver Cotización', icon: Icons.receipt_outlined),
+                      _NavItem(label: 'Realizar Pago',  icon: Icons.credit_card_outlined),
+                    ],
+                  ),
+                ],
+
+                // ── taller ───────────────────────────────────
+                if (widget.role == 'taller') ...[
+                  _NavSection(
+                    id: 'solicitudes', label: 'Solicitudes',
+                    icon: Icons.assignment_outlined,
+                    isOpen: _open.contains('solicitudes'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Ver Disponibles',  icon: Icons.list_alt_outlined),
+                      _NavItem(label: 'Ver Detalle',      icon: Icons.info_outline),
+                      _NavItem(label: 'Aceptar/Rechazar', icon: Icons.rule_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'talleres', label: 'Talleres y Técnicos',
+                    icon: Icons.handyman_outlined,
+                    isOpen: _open.contains('talleres'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Gestionar Técnicos',   icon: Icons.people_outline),
+                      _NavItem(label: 'Asignar Técnico',      icon: Icons.person_add_outlined),
+                      _NavItem(label: 'Servicio Realizado',   icon: Icons.check_circle_outline),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'pagos', label: 'Cotización y Pagos',
+                    icon: Icons.receipt_long_outlined,
+                    isOpen: _open.contains('pagos'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Generar Cotización', icon: Icons.edit_note_outlined),
+                      _NavItem(label: 'Ver Comisiones',     icon: Icons.percent_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'reportes', label: 'Reportes',
+                    icon: Icons.analytics_outlined,
+                    isOpen: _open.contains('reportes'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Métricas Taller', icon: Icons.bar_chart_outlined),
+                      _NavItem(label: 'Historial',       icon: Icons.history_outlined),
+                    ],
+                  ),
+                ],
+
+                // ── tecnico ──────────────────────────────────
+                if (widget.role == 'tecnico') ...[
+                  _NavSection(
+                    id: 'talleres', label: 'Mi Trabajo',
+                    icon: Icons.handyman_outlined,
+                    isOpen: _open.contains('talleres'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Actualizar Estado',  icon: Icons.build_outlined),
+                      _NavItem(label: 'Disponibilidad',     icon: Icons.event_available_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'comunicacion', label: 'Comunicación',
+                    icon: Icons.forum_outlined,
+                    isOpen: _open.contains('comunicacion'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Chat',           icon: Icons.chat_bubble_outline),
+                      _NavItem(label: 'Notificaciones', icon: Icons.notifications_outlined),
+                      _NavItem(label: 'Ver en Mapa',    icon: Icons.map_outlined),
+                    ],
+                  ),
+                ],
+
+                // ── admin ────────────────────────────────────
+                if (widget.role == 'admin') ...[
+                  _NavSection(
+                    id: 'acceso', label: 'Gestión de Acceso',
+                    icon: Icons.manage_accounts_outlined,
+                    isOpen: _open.contains('acceso'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Gestionar Usuarios', icon: Icons.people_outline),
+                      _NavItem(label: 'Aprobar Talleres',   icon: Icons.verified_outlined),
+                    ],
+                  ),
+                  _NavSection(
+                    id: 'reportes', label: 'Reportes',
+                    icon: Icons.analytics_outlined,
+                    isOpen: _open.contains('reportes'), onToggle: _toggle,
+                    items: const [
+                      _NavItem(label: 'Métricas Globales', icon: Icons.insights_outlined),
+                      _NavItem(label: 'Auditoría',         icon: Icons.policy_outlined),
+                    ],
+                  ),
+                ],
+
+                // ── común a todos ─────────────────────────────
                 _NavSection(
-                  id: 'acceso', label: 'Acceso y Registro',
-                  icon: Icons.manage_accounts_outlined,
-                  isOpen: _open.contains('acceso'), onToggle: _toggle,
-                  items: [
-                    _NavItem(label: 'Mis Vehículos',    icon: Icons.directions_car_outlined, route: '/acceso/mis-vehiculos'),
-                    _NavItem(label: 'Registrar Taller', icon: Icons.store_outlined,          route: '/acceso/registrar-taller'),
-                  ],
-                ),
-                _NavSection(
-                  id: 'emergencias', label: 'Emergencias',
-                  icon: Icons.emergency_outlined,
-                  isOpen: _open.contains('emergencias'), onToggle: _toggle,
-                  items: const [
-                    _NavItem(label: 'Reportar Emergencia', icon: Icons.warning_amber_outlined, route: '/emergencias/reportar'),
-                    _NavItem(label: 'Enviar Ubicación',    icon: Icons.location_on_outlined),
-                    _NavItem(label: 'Adjuntar Fotos',      icon: Icons.photo_camera_outlined),
-                  ],
-                ),
-                _NavSection(
-                  id: 'solicitudes', label: 'Solicitudes',
-                  icon: Icons.assignment_outlined,
-                  isOpen: _open.contains('solicitudes'), onToggle: _toggle,
-                  items: const [
-                    _NavItem(label: 'Ver Estado',      icon: Icons.track_changes_outlined),
-                    _NavItem(label: 'Mis Solicitudes', icon: Icons.history_outlined),
-                  ],
-                ),
-                _NavSection(
-                  id: 'talleres', label: 'Talleres y Técnicos',
-                  icon: Icons.handyman_outlined,
-                  isOpen: _open.contains('talleres'), onToggle: _toggle,
-                  items: const [
-                    _NavItem(label: 'Gestionar Técnicos', icon: Icons.people_outline),
-                    _NavItem(label: 'Asignar Técnico',    icon: Icons.person_add_outlined),
-                    _NavItem(label: 'Disponibilidad',     icon: Icons.event_available_outlined),
-                  ],
-                ),
-                _NavSection(
-                  id: 'pagos', label: 'Cotización y Pagos',
-                  icon: Icons.receipt_long_outlined,
-                  isOpen: _open.contains('pagos'), onToggle: _toggle,
-                  items: const [
-                    _NavItem(label: 'Ver Cotización', icon: Icons.receipt_outlined),
-                    _NavItem(label: 'Realizar Pago',  icon: Icons.credit_card_outlined),
-                    _NavItem(label: 'Ver Comisiones', icon: Icons.percent_outlined),
-                  ],
-                ),
-                _NavSection(
-                  id: 'comunicacion', label: 'Comunicación',
+                  id: 'comunicacion_comun', label: 'Comunicación',
                   icon: Icons.forum_outlined,
-                  isOpen: _open.contains('comunicacion'), onToggle: _toggle,
+                  isOpen: _open.contains('comunicacion_comun'), onToggle: _toggle,
                   items: const [
-                    _NavItem(label: 'Chat',            icon: Icons.chat_bubble_outline),
-                    _NavItem(label: 'Notificaciones',  icon: Icons.notifications_outlined),
-                    _NavItem(label: 'Técnico en Mapa', icon: Icons.map_outlined),
-                  ],
-                ),
-                _NavSection(
-                  id: 'reportes', label: 'Reportes',
-                  icon: Icons.analytics_outlined,
-                  isOpen: _open.contains('reportes'), onToggle: _toggle,
-                  items: const [
-                    _NavItem(label: 'Historial',         icon: Icons.history_outlined),
-                    _NavItem(label: 'Métricas Taller',   icon: Icons.bar_chart_outlined),
-                    _NavItem(label: 'Métricas Globales', icon: Icons.insights_outlined),
-                    _NavItem(label: 'Auditoría',         icon: Icons.policy_outlined),
+                    _NavItem(label: 'Chat',           icon: Icons.chat_bubble_outline),
+                    _NavItem(label: 'Notificaciones', icon: Icons.notifications_outlined),
                   ],
                 ),
               ],
@@ -384,7 +557,7 @@ class _AppDrawerState extends State<_AppDrawer> {
                       Text(widget.userName,
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text),
                         overflow: TextOverflow.ellipsis),
-                      Text(widget.isAdmin ? 'Administrador' : 'Usuario',
+                      Text(_roleLabel(widget.role),
                         style: const TextStyle(fontSize: 11, color: Color(0xFF9CA3AF))),
                     ],
                   ),

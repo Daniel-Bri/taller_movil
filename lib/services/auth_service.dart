@@ -32,12 +32,14 @@ class AuthService {
     required String username,
     required String password,
     String? fullName,
+    String? telefono,
   }) async {
     final body = <String, dynamic>{
       'email': email,
       'username': username,
       'password': password,
       if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+      if (telefono != null && telefono.isNotEmpty) 'telefono': telefono,
     };
     final res = await http.post(
       Uri.parse('$_baseUrl/register'),

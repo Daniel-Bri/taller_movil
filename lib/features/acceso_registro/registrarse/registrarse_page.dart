@@ -16,6 +16,7 @@ class _RegistrarsePageState extends State<RegistrarsePage> {
   final _emailCtrl       = TextEditingController();
   final _usernameCtrl    = TextEditingController();
   final _fullNameCtrl    = TextEditingController();
+  final _telefonoCtrl    = TextEditingController();
   final _passwordCtrl    = TextEditingController();
   final _confirmPwdCtrl  = TextEditingController();
   final _authService     = AuthService();
@@ -30,6 +31,7 @@ class _RegistrarsePageState extends State<RegistrarsePage> {
     _emailCtrl.dispose();
     _usernameCtrl.dispose();
     _fullNameCtrl.dispose();
+    _telefonoCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPwdCtrl.dispose();
     super.dispose();
@@ -44,6 +46,7 @@ class _RegistrarsePageState extends State<RegistrarsePage> {
         username: _usernameCtrl.text.trim(),
         password: _passwordCtrl.text,
         fullName: _fullNameCtrl.text.trim(),
+        telefono: _telefonoCtrl.text.trim(),
       );
       if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
     } catch (e) {
@@ -126,6 +129,13 @@ class _RegistrarsePageState extends State<RegistrarsePage> {
                           controller: _fullNameCtrl,
                           label: 'Nombre completo (opcional)',
                           hint: 'Juan Pérez',
+                        ),
+                        const SizedBox(height: 16),
+                        AuthField(
+                          controller: _telefonoCtrl,
+                          label: 'Teléfono (opcional)',
+                          hint: '+591 70000000',
+                          keyboardType: TextInputType.phone,
                         ),
                         const SizedBox(height: 16),
                         AuthField(
