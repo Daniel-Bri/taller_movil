@@ -301,7 +301,7 @@ class _AppDrawerState extends State<_AppDrawer> {
                   icon: Icons.emergency_outlined,
                   isOpen: _open.contains('emergencias'), onToggle: _toggle,
                   items: const [
-                    _NavItem(label: 'Reportar Emergencia', icon: Icons.warning_amber_outlined),
+                    _NavItem(label: 'Reportar Emergencia', icon: Icons.warning_amber_outlined, route: '/emergencias/reportar'),
                     _NavItem(label: 'Enviar Ubicación',    icon: Icons.location_on_outlined),
                     _NavItem(label: 'Adjuntar Fotos',      icon: Icons.photo_camera_outlined),
                   ],

@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import 'api_helper.dart';
 
 class VehiculoService {
-  static const _baseUrl = 'http://10.0.2.2:8000/api/acceso';
+  static final _baseUrl = kIsWeb
+      ? 'http://localhost:8000/api/acceso'
+      : 'http://10.0.2.2:8000/api/acceso';
   final _auth = AuthService();
 
   Future<Map<String, String>> _authHeaders() async {
@@ -33,9 +37,8 @@ class VehiculoService {
         'color': color,
       }),
     );
-    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
-    final err = jsonDecode(res.body);
-    throw Exception(err['detail'] ?? 'Error al registrar vehículo');
+    verificarRespuesta(res, esperado: 201);
+    return jsonDecode(res.body) as Map<String, dynamic>;
   }
 
   // ── CU04 - Listar Vehículos ───────────────────────────────
@@ -44,11 +47,8 @@ class VehiculoService {
       Uri.parse('$_baseUrl/vehiculos'),
       headers: await _authHeaders(),
     );
-    if (res.statusCode == 200) {
-      final list = jsonDecode(res.body) as List<dynamic>;
-      return list.cast<Map<String, dynamic>>();
-    }
-    throw Exception('Error al cargar vehículos');
+    verificarRespuesta(res);
+    return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
   }
 
   // ── Eliminar Vehículo ────────────────────────────────────
@@ -57,10 +57,7 @@ class VehiculoService {
       Uri.parse('$_baseUrl/vehiculos/$id'),
       headers: await _authHeaders(),
     );
-    if (res.statusCode != 200 && res.statusCode != 204) {
-      final err = jsonDecode(res.body);
-      throw Exception(err['detail'] ?? 'Error al eliminar vehículo');
-    }
+    verificarRespuesta(res, esperado: 204);
   }
 
   // ── CU12 - Registrar Taller ───────────────────────────────
@@ -85,8 +82,7 @@ class VehiculoService {
       headers: await _authHeaders(),
       body: jsonEncode(body),
     );
-    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
-    final err = jsonDecode(res.body);
-    throw Exception(err['detail'] ?? 'Error al registrar taller');
+    verificarRespuesta(res, esperado: 201);
+    return jsonDecode(res.body) as Map<String, dynamic>;
   }
 }

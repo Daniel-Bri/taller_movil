@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/vehiculo_service.dart';
+import 'package:taller_movil/services/api_helper.dart';
 import 'package:taller_movil/features/acceso_registro/registrar_vehiculo/registrar_vehiculo_page.dart';
 
 class GestionarVehiculosPage extends StatefulWidget {
@@ -21,7 +22,7 @@ class _GestionarVehiculosPageState extends State<GestionarVehiculosPage> {
   }
 
   void _reload() {
-    setState(() => _futureVehiculos = _service.listarVehiculos());
+    setState(() { _futureVehiculos = _service.listarVehiculos(); });
   }
 
   Future<void> _delete(int id, String placa) async {
@@ -49,11 +50,14 @@ class _GestionarVehiculosPageState extends State<GestionarVehiculosPage> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: AppColors.danger),
-        );
+      if (!mounted) return;
+      if (e is TokenExpiradoException) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: AppColors.danger),
+      );
     }
   }
 

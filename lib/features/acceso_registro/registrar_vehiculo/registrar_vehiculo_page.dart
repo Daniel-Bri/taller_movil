@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/vehiculo_service.dart';
+import 'package:taller_movil/services/api_helper.dart';
 
 class RegistrarVehiculoPage extends StatefulWidget {
   const RegistrarVehiculoPage({super.key});
@@ -55,6 +56,10 @@ class _RegistrarVehiculoPageState extends State<RegistrarVehiculoPage> {
       );
       setState(() { _success = true; _loading = false; });
     } catch (e) {
+      if (e is TokenExpiradoException) {
+        if (mounted) Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
         _loading = false;
