@@ -1,11 +1,11 @@
+// ignore: unused_import
 import 'dart:convert';
 import 'package:flutter/material.dart';
+// ignore: unused_import
 import 'package:http/http.dart' as http;
 import 'package:taller_movil/core/theme/app_colors.dart';
-import 'package:taller_movil/services/auth_service.dart';
 
 // CU03 - Registrar Vehículo
-import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/vehiculo_service.dart';
 import 'package:taller_movil/services/api_helper.dart';
 

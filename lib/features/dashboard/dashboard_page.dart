@@ -30,9 +30,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (mounted) Navigator.pushReplacementNamed(context, '/login');
   }
 
-  String get _userInitial => (_user?['username'] as String? ?? 'U')[0].toUpperCase();
   String get _userName    => _user?['full_name'] ?? _user?['username'] ?? 'Usuario';
-  String get _userEmail   => _user?['email'] ?? '';
   String get _role        => _user?['role'] as String? ?? 'cliente';
   bool   get _isAdmin     => _role == 'admin';
   bool   get _isTaller    => _role == 'taller';

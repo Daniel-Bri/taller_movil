@@ -10,7 +10,6 @@ import 'package:taller_movil/features/acceso_registro/gestionar_vehiculos/gestio
 import 'package:taller_movil/features/acceso_registro/registrar_taller/registrar_taller_page.dart';
 import 'package:taller_movil/features/dashboard/dashboard_page.dart';
 import 'package:taller_movil/features/emergencias/reportar_emergencia/reportar_emergencia_page.dart';
-import 'package:taller_movil/services/auth_service.dart';
 
 void main() {
   runApp(const RutaSegura());
