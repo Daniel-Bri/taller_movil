@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/emergencia_service.dart';
 import 'package:taller_movil/services/api_helper.dart';
+import 'package:taller_movil/features/emergencias/adjuntar_fotos/adjuntar_fotos_page.dart';
 
 // CU06 - Enviar Ubicación GPS
 class EnviarUbicacionPage extends StatefulWidget {
@@ -122,8 +123,19 @@ class _EnviarUbicacionPageState extends State<EnviarUbicacionPage> {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: _enviado
-            ? _SuccessView(onDone: () =>
-                Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false))
+            ? _SuccessView(
+                incidenteId: widget.incidenteId,
+                onAdjuntarFotos: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => AdjuntarFotosPage(incidenteId: widget.incidenteId),
+                    ),
+                  );
+                },
+                onInicio: () =>
+                    Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false),
+              )
             : _buildForm(),
       ),
     );
@@ -285,8 +297,14 @@ class _EnviarUbicacionPageState extends State<EnviarUbicacionPage> {
 
 // ── Pantalla de éxito ─────────────────────────────────────────
 class _SuccessView extends StatelessWidget {
-  final VoidCallback onDone;
-  const _SuccessView({required this.onDone});
+  final int incidenteId;
+  final VoidCallback onAdjuntarFotos;
+  final VoidCallback onInicio;
+  const _SuccessView({
+    required this.incidenteId,
+    required this.onAdjuntarFotos,
+    required this.onInicio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -305,18 +323,34 @@ class _SuccessView extends StatelessWidget {
               style: TextStyle(
                   fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text)),
           const SizedBox(height: 8),
-          const Text(
-            'Tu ubicación fue registrada.\nUn taller cercano recibirá tu solicitud pronto.',
+          Text(
+            'Emergencia #$incidenteId · Tu ubicación fue registrada.\n'
+            'Puedes adjuntar fotos de evidencia o volver al inicio.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onAdjuntarFotos,
+              icon: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
+              label: const Text('Adjuntar fotos',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: AppColors.primary)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: onDone,
+            onPressed: onInicio,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+              minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               elevation: 0,
             ),

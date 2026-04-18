@@ -12,6 +12,8 @@ import 'package:taller_movil/features/dashboard/dashboard_page.dart';
 import 'package:taller_movil/features/emergencias/reportar_emergencia/reportar_emergencia_page.dart';
 import 'package:taller_movil/features/talleres_tecnicos/actualizar_estado_servicio/actualizar_estado_servicio_page.dart';
 import 'package:taller_movil/features/talleres_tecnicos/registrar_servicio_realizado/registrar_servicio_realizado_page.dart';
+import 'package:taller_movil/features/solicitudes/ver_estado_solicitud/ver_estado_solicitud_page.dart';
+import 'package:taller_movil/features/solicitudes/ver_solicitudes_disponibles/ver_solicitudes_disponibles_page.dart';
 
 void main() {
   runApp(const RutaSegura());
@@ -41,6 +43,8 @@ class RutaSegura extends StatelessWidget {
         '/emergencias/reportar':          (_) => const ReportarEmergenciaPage(),
         '/talleres/estado-servicio':      (_) => const ActualizarEstadoServicioPage(),
         '/talleres/servicio-realizado':   (_) => const RegistrarServicioRealizadoPage(),
+        '/solicitudes/estado':            (_) => const VerEstadoSolicitudPage(),
+        '/solicitudes/disponibles':      (_) => const VerSolicitudesDisponiblesPage(),
       },
     );
   }

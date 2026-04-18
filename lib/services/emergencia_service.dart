@@ -1,12 +1,31 @@
 import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'auth_service.dart';
+import 'api_helper.dart';
+
+MediaType _fotoMediaType(String? mimeType, String filename) {
+  if (mimeType != null && mimeType.isNotEmpty) {
+    try {
+      return MediaType.parse(mimeType);
+    } catch (_) {}
+  }
+  final lower = filename.toLowerCase();
+  if (lower.endsWith('.png')) return MediaType('image', 'png');
+  if (lower.endsWith('.webp')) return MediaType('image', 'webp');
+  return MediaType('image', 'jpeg');
+}
 
 class EmergenciaService {
   static final _baseUrl = kIsWeb
       ? 'http://localhost:8000/api/emergencias'
       : 'http://10.0.2.2:8000/api/emergencias';
+
+  static String get apiOrigin =>
+      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
 
   final _auth = AuthService();
 
@@ -68,5 +87,78 @@ class EmergenciaService {
       return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
     }
     throw Exception('Error al cargar incidentes (${res.statusCode})');
+  }
+
+  /// CU07 – Subir una foto (multipart, campo `file`). Usa bytes para compatibilidad con Flutter Web.
+  Future<Map<String, dynamic>> subirFoto({
+    required int incidenteId,
+    required Uint8List bytes,
+    String filename = 'foto.jpg',
+    String? mimeType,
+  }) async {
+    final token = await _auth.getToken();
+    final uri = Uri.parse('$_baseUrl/$incidenteId/fotos');
+    final request = http.MultipartRequest('POST', uri);
+    if (token != null) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    var fn = filename.trim();
+    if (fn.isEmpty) fn = 'foto.jpg';
+    final ct = _fotoMediaType(mimeType, fn);
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: fn,
+        contentType: ct,
+      ),
+    );
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    if (res.statusCode == 201) {
+      return jsonDecode(res.body) as Map<String, dynamic>;
+    }
+    if (res.statusCode == 401 || res.statusCode == 403) {
+      throw TokenExpiradoException();
+    }
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al subir la foto (${res.statusCode})');
+  }
+
+  /// CU09 – Actualizar descripción (opcional tras crear el incidente).
+  Future<Map<String, dynamic>> actualizarDescripcion({
+    required int incidenteId,
+    required String descripcion,
+  }) async {
+    final res = await http.patch(
+      Uri.parse('$_baseUrl/$incidenteId/descripcion'),
+      headers: await _authHeaders(),
+      body: jsonEncode({'descripcion': descripcion}),
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) {
+      throw TokenExpiradoException();
+    }
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al guardar descripción (${res.statusCode})');
+  }
+
+  /// CU10 – Incidente + asignación + URLs de fotos.
+  Future<List<Map<String, dynamic>>> listarMisSolicitudes() async {
+    final res = await http.get(
+      Uri.parse('$_baseUrl/mis-solicitudes'),
+      headers: await _authHeaders(),
+    );
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
+    }
+    if (res.statusCode == 401 || res.statusCode == 403) {
+      throw TokenExpiradoException();
+    }
+    throw Exception('Error al cargar solicitudes (${res.statusCode})');
   }
 }

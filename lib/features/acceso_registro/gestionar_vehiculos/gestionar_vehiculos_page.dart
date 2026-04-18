@@ -61,6 +61,93 @@ class _GestionarVehiculosPageState extends State<GestionarVehiculosPage> {
     }
   }
 
+  Future<void> _editar(Map<String, dynamic> v) async {
+    final id = v['id'] as int;
+    final placaCtrl = TextEditingController(text: v['placa'] as String);
+    final marcaCtrl = TextEditingController(text: v['marca'] as String);
+    final modeloCtrl = TextEditingController(text: v['modelo'] as String);
+    final anioCtrl = TextEditingController(text: '${v['anio']}');
+    final colorCtrl = TextEditingController(text: v['color'] as String);
+    final formKey = GlobalKey<FormState>();
+
+    try {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Editar vehículo'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: placaCtrl,
+                    decoration: const InputDecoration(labelText: 'Placa'),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                  TextFormField(controller: marcaCtrl, decoration: const InputDecoration(labelText: 'Marca')),
+                  TextFormField(controller: modeloCtrl, decoration: const InputDecoration(labelText: 'Modelo')),
+                  TextFormField(
+                    controller: anioCtrl,
+                    decoration: const InputDecoration(labelText: 'Año'),
+                    keyboardType: TextInputType.number,
+                    validator: (s) {
+                      final n = int.tryParse(s?.trim() ?? '');
+                      if (n == null || n < 1900 || n > 2100) return 'Año inválido';
+                      return null;
+                    },
+                  ),
+                  TextFormField(controller: colorCtrl, decoration: const InputDecoration(labelText: 'Color')),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+            TextButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() ?? false) Navigator.pop(ctx, true);
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+
+      await _service.actualizarVehiculo(
+        id: id,
+        placa: placaCtrl.text.trim().toUpperCase(),
+        marca: marcaCtrl.text.trim(),
+        modelo: modeloCtrl.text.trim(),
+        anio: int.parse(anioCtrl.text.trim()),
+        color: colorCtrl.text.trim(),
+      );
+      _reload();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vehículo actualizado'), backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      if (e is TokenExpiradoException) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: AppColors.danger),
+      );
+    } finally {
+      placaCtrl.dispose();
+      marcaCtrl.dispose();
+      modeloCtrl.dispose();
+      anioCtrl.dispose();
+      colorCtrl.dispose();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,6 +210,7 @@ class _GestionarVehiculosPageState extends State<GestionarVehiculosPage> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (_, i) => _VehiculoCard(
               vehiculo: vehiculos[i],
+              onEdit: () => _editar(vehiculos[i]),
               onDelete: () => _delete(vehiculos[i]['id'] as int, vehiculos[i]['placa'] as String),
             ),
           );
@@ -133,8 +221,9 @@ class _GestionarVehiculosPageState extends State<GestionarVehiculosPage> {
 }
 
 class _VehiculoCard extends StatelessWidget {
-  const _VehiculoCard({required this.vehiculo, required this.onDelete});
+  const _VehiculoCard({required this.vehiculo, required this.onEdit, required this.onDelete});
   final Map<String, dynamic> vehiculo;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
@@ -175,6 +264,11 @@ class _VehiculoCard extends StatelessWidget {
                 ]),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
+            onPressed: onEdit,
+            tooltip: 'Editar',
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: AppColors.danger),

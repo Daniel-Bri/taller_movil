@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Permite tomar fotos como evidencia del incidente.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Permite elegir fotos de la galería como evidencia.</string>
 </dict>
 </plist>

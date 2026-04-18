@@ -51,6 +51,31 @@ class VehiculoService {
     return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
   }
 
+  // ── Actualizar vehículo (CU04) ────────────────────────────
+  Future<Map<String, dynamic>> actualizarVehiculo({
+    required int id,
+    String? placa,
+    String? marca,
+    String? modelo,
+    int? anio,
+    String? color,
+  }) async {
+    final body = <String, dynamic>{
+      if (placa != null) 'placa': placa,
+      if (marca != null) 'marca': marca,
+      if (modelo != null) 'modelo': modelo,
+      if (anio != null) 'anio': anio,
+      if (color != null) 'color': color,
+    };
+    final res = await http.patch(
+      Uri.parse('$_baseUrl/vehiculos/$id'),
+      headers: await _authHeaders(),
+      body: jsonEncode(body),
+    );
+    verificarRespuesta(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
   // ── Eliminar Vehículo ────────────────────────────────────
   Future<void> eliminarVehiculo(int id) async {
     final res = await http.delete(

@@ -182,8 +182,15 @@ class _ReportarEmergenciaPageState extends State<ReportarEmergenciaPage> {
                     TextFormField(
                       controller: _descCtrl,
                       maxLines: 4,
-                      decoration: _inputDeco('Describe brevemente el problema...'),
+                      maxLength: 1000,
+                      decoration: _inputDeco('Describe brevemente el problema... (opcional, máx. 1000)'),
                       style: const TextStyle(fontSize: 14),
+                      validator: (v) {
+                        if (v != null && v.trim().length > 1000) {
+                          return 'La descripción no puede exceder 1000 caracteres';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
 

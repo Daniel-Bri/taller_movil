@@ -133,6 +133,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     onTap: () => Navigator.pushNamed(context, '/emergencias/reportar'),
                   ),
                   _QuickCard(
+                    icon: Icons.track_changes_outlined,
+                    label: 'Mis solicitudes',
+                    iconBg: const Color(0xFFEFF6FF),
+                    iconColor: AppColors.primary,
+                    onTap: () => Navigator.pushNamed(context, '/solicitudes/estado'),
+                  ),
+                  _QuickCard(
                     icon: Icons.history,
                     label: 'Historial',
                     iconBg: const Color(0xFFF5F3FF),
@@ -146,7 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
                     label: 'Ver Solicitudes',
                     iconBg: const Color(0xFFEFF6FF),
                     iconColor: AppColors.primary,
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(context, '/solicitudes/disponibles'),
                   ),
                   _QuickCard(
                     icon: Icons.people_outline,
