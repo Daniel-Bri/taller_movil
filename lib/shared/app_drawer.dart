@@ -195,10 +195,8 @@ class _AppDrawerState extends State<AppDrawer> {
                     expanded: _expanded,
                     onToggle: _toggle,
                     children: [
-                      _NavChild(label: 'Gestionar técnicos',
-                          onTap: () => _navigate('/talleres/tecnicos')),
-                      _NavChild(label: 'Asignar técnico',
-                          onTap: () => _navigate('/talleres/asignar-tecnico')),
+                      _NavChild(label: 'Actualizar estado servicio',
+                          onTap: () => _navigate('/talleres/estado-servicio')),
                       _NavChild(label: 'Registrar servicio realizado',
                           onTap: () => _navigate('/talleres/servicio-realizado')),
                     ],
@@ -244,8 +242,8 @@ class _AppDrawerState extends State<AppDrawer> {
                     children: [
                       _NavChild(label: 'Actualizar estado servicio',
                           onTap: () => _navigate('/talleres/estado-servicio')),
-                      _NavChild(label: 'Gestionar disponibilidad',
-                          onTap: () => _navigate('/talleres/disponibilidad')),
+                      _NavChild(label: 'Registrar servicio realizado',
+                          onTap: () => _navigate('/talleres/servicio-realizado')),
                     ],
                   ),
                 ],

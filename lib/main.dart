@@ -10,6 +10,8 @@ import 'package:taller_movil/features/acceso_registro/gestionar_vehiculos/gestio
 import 'package:taller_movil/features/acceso_registro/registrar_taller/registrar_taller_page.dart';
 import 'package:taller_movil/features/dashboard/dashboard_page.dart';
 import 'package:taller_movil/features/emergencias/reportar_emergencia/reportar_emergencia_page.dart';
+import 'package:taller_movil/features/talleres_tecnicos/actualizar_estado_servicio/actualizar_estado_servicio_page.dart';
+import 'package:taller_movil/features/talleres_tecnicos/registrar_servicio_realizado/registrar_servicio_realizado_page.dart';
 
 void main() {
   runApp(const RutaSegura());
@@ -36,7 +38,9 @@ class RutaSegura extends StatelessWidget {
         '/acceso/registrar-vehiculo': (_) => const RegistrarVehiculoPage(),
         '/acceso/mis-vehiculos':    (_) => const GestionarVehiculosPage(),
         '/acceso/registrar-taller':    (_) => const RegistrarTallerPage(),
-        '/emergencias/reportar':       (_) => const ReportarEmergenciaPage(),
+        '/emergencias/reportar':          (_) => const ReportarEmergenciaPage(),
+        '/talleres/estado-servicio':      (_) => const ActualizarEstadoServicioPage(),
+        '/talleres/servicio-realizado':   (_) => const RegistrarServicioRealizadoPage(),
       },
     );
   }
