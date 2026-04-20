@@ -124,7 +124,7 @@ class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: _items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (_, i) {
                           final row = _items[i];
                           final inc = row['incidente'] as Map<String, dynamic>? ?? {};
@@ -195,7 +195,7 @@ class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
                                     child: ListView.separated(
                                       scrollDirection: Axis.horizontal,
                                       itemCount: fotos.length,
-                                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                                       itemBuilder: (_, j) {
                                         final u = fotos[j];
                                         final full = u.startsWith('http')
@@ -204,7 +204,7 @@ class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
                                         return ClipRRect(
                                           borderRadius: BorderRadius.circular(8),
                                           child: Image.network(full, width: 96, height: 72, fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) => Container(
+                                              errorBuilder: (_, _, _) => Container(
                                                     width: 96,
                                                     height: 72,
                                                     color: const Color(0xFFF3F4F6),

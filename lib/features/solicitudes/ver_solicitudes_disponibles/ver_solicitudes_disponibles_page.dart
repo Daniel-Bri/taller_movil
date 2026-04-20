@@ -147,7 +147,7 @@ class _VerSolicitudesDisponiblesPageState extends State<VerSolicitudesDisponible
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: _items.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (_, i) {
                         final s = _items[i];
                         final id = s['incidente_id'] as int;
