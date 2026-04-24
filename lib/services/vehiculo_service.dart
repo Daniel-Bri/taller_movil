@@ -1,13 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:taller_movil/core/config/app_config.dart';
 import 'auth_service.dart';
 import 'api_helper.dart';
 
 class VehiculoService {
-  static final _baseUrl = kIsWeb
-      ? 'http://localhost:8000/api/acceso'
-      : 'http://10.0.2.2:8000/api/acceso';
+  static final _baseUrl = '${AppConfig.baseUrl}/api/acceso';
   final _auth = AuthService();
 
   Future<Map<String, String>> _authHeaders() async {

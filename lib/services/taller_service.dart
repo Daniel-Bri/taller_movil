@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
+import 'package:taller_movil/core/config/app_config.dart';
 import 'package:taller_movil/services/api_helper.dart';
 import 'package:taller_movil/services/auth_service.dart';
 
@@ -82,9 +82,7 @@ class ServicioRealizadoModel {
 }
 
 class TallerService {
-  static final _baseUrl = kIsWeb
-      ? 'http://localhost:8000/api/talleres'
-      : 'http://10.0.2.2:8000/api/talleres';
+  static final _baseUrl = '${AppConfig.baseUrl}/api/talleres';
 
   final _auth = AuthService();
 

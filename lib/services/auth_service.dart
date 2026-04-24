@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:taller_movil/core/config/app_config.dart';
 
 class AuthService {
-  static final _baseUrl = kIsWeb
-      ? 'http://localhost:8000/api/acceso'
-      : 'http://10.0.2.2:8000/api/acceso';
+  static final _baseUrl = '${AppConfig.baseUrl}/api/acceso';
   static const _tokenKey  = 'access_token';
   static const _userKey   = 'taller_user';
 

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:taller_movil/core/config/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
@@ -69,9 +69,7 @@ class MensajeModel {
 // ─────────────────────────────────────────────────────────────
 
 class ComunicacionService {
-  static final _baseUrl = kIsWeb
-      ? 'http://localhost:8000/api/comunicacion'
-      : 'http://10.0.2.2:8000/api/comunicacion';
+  static final _baseUrl = '${AppConfig.baseUrl}/api/comunicacion';
 
   final _auth = AuthService();
 

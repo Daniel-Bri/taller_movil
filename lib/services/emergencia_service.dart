@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:taller_movil/core/config/app_config.dart';
 import 'auth_service.dart';
 import 'api_helper.dart';
 
@@ -20,12 +20,8 @@ MediaType _fotoMediaType(String? mimeType, String filename) {
 }
 
 class EmergenciaService {
-  static final _baseUrl = kIsWeb
-      ? 'http://localhost:8000/api/emergencias'
-      : 'http://10.0.2.2:8000/api/emergencias';
-
-  static String get apiOrigin =>
-      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+  static final _baseUrl = '${AppConfig.baseUrl}/api/emergencias';
+  static String get apiOrigin => AppConfig.baseUrl;
 
   final _auth = AuthService();
 
