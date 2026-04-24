@@ -12,6 +12,10 @@ import 'package:taller_movil/features/dashboard/dashboard_page.dart';
 import 'package:taller_movil/features/emergencias/reportar_emergencia/reportar_emergencia_page.dart';
 import 'package:taller_movil/features/talleres_tecnicos/actualizar_estado_servicio/actualizar_estado_servicio_page.dart';
 import 'package:taller_movil/features/talleres_tecnicos/registrar_servicio_realizado/registrar_servicio_realizado_page.dart';
+// Comunicación
+import 'package:taller_movil/features/comunicacion/ver_tecnico_mapa/ver_tecnico_mapa_page.dart';
+import 'package:taller_movil/features/comunicacion/compartir_ubicacion/compartir_ubicacion_page.dart';
+import 'package:taller_movil/features/comunicacion/chat/chat_page.dart';
 
 void main() {
   runApp(const RutaSegura());
@@ -41,6 +45,11 @@ class RutaSegura extends StatelessWidget {
         '/emergencias/reportar':          (_) => const ReportarEmergenciaPage(),
         '/talleres/estado-servicio':      (_) => const ActualizarEstadoServicioPage(),
         '/talleres/servicio-realizado':   (_) => const RegistrarServicioRealizadoPage(),
+        // CU17
+        '/comunicacion/ver-tecnico':          (_) => const VerTecnicoMapaPage(),
+        '/comunicacion/compartir-ubicacion':  (_) => const CompartirUbicacionPage(),
+        // CU18
+        '/comunicacion/chat':                 (_) => const ChatPage(),
       },
     );
   }

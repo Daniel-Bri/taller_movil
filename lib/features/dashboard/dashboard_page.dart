@@ -133,11 +133,19 @@ class _DashboardPageState extends State<DashboardPage> {
                     onTap: () => Navigator.pushNamed(context, '/emergencias/reportar'),
                   ),
                   _QuickCard(
-                    icon: Icons.history,
-                    label: 'Historial',
+                    icon: Icons.map_outlined,
+                    label: 'Ver Técnico',
                     iconBg: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF7C3AED),
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(
+                        context, '/comunicacion/ver-tecnico'),
+                  ),
+                  _QuickCard(
+                    icon: Icons.chat_bubble_outline,
+                    label: 'Chat',
+                    iconBg: const Color(0xFFECFDF5),
+                    iconColor: AppColors.success,
+                    onTap: () => Navigator.pushNamed(context, '/comunicacion/chat'),
                   ),
                 ],
                 if (_isTaller) ...[
@@ -190,14 +198,15 @@ class _DashboardPageState extends State<DashboardPage> {
                     label: 'Chat',
                     iconBg: const Color(0xFFFEF2F2),
                     iconColor: AppColors.danger,
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(context, '/comunicacion/chat'),
                   ),
                   _QuickCard(
                     icon: Icons.map_outlined,
-                    label: 'Mapa',
+                    label: 'Compartir Ubicación',
                     iconBg: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF7C3AED),
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(
+                        context, '/comunicacion/compartir-ubicacion'),
                   ),
                 ],
                 if (_isAdmin) ...[
