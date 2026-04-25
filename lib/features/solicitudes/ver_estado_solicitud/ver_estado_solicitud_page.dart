@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/emergencia_service.dart';
+import 'package:taller_movil/services/taller_service.dart';
 import 'package:taller_movil/services/api_helper.dart';
 
 /// CU10 – Ver estado de solicitud (mis incidentes, taller, ETA, actualización periódica).
@@ -15,10 +16,12 @@ class VerEstadoSolicitudPage extends StatefulWidget {
 
 class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
   final _svc = EmergenciaService();
+  final _tallerSvc = TallerService();
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
   String _error = '';
   Timer? _poll;
+  final Set<int> _confirmando = {};
 
   @override
   void initState() {
@@ -55,6 +58,33 @@ class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
         _error = e.toString().replaceFirst('Exception: ', '');
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _confirmarLlegada(int asignacionId) async {
+    setState(() => _confirmando.add(asignacionId));
+    try {
+      await _tallerSvc.confirmarLlegadaTecnico(asignacionId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('✅ Llegada del técnico confirmada'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      _cargar();
+    } catch (e) {
+      if (!mounted) return;
+      if (e is TokenExpiradoException) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')),
+                 backgroundColor: AppColors.danger),
+      );
+    } finally {
+      if (mounted) setState(() => _confirmando.remove(asignacionId));
     }
   }
 
@@ -170,6 +200,30 @@ class _VerEstadoSolicitudPageState extends State<VerEstadoSolicitudPage> {
                                       icon: Icons.schedule,
                                       text: 'ETA: ${asig['eta']} min',
                                     ),
+                                  // CU31 — Confirmar llegada del técnico
+                                  if ((asig['estado'] == 'en_camino' || asig['estado'] == 'aceptado')) ...[
+                                    const SizedBox(height: 10),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        icon: _confirmando.contains(asig['id'] as int?)
+                                          ? const SizedBox(width: 16, height: 16,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                          : const Icon(Icons.where_to_vote_outlined, size: 18),
+                                        label: const Text('Confirmar llegada del técnico',
+                                          style: TextStyle(fontWeight: FontWeight.w600)),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                        onPressed: _confirmando.contains(asig['id'] as int?)
+                                          ? null
+                                          : () => _confirmarLlegada(asig['id'] as int),
+                                      ),
+                                    ),
+                                  ],
                                 ] else
                                   const Padding(
                                     padding: EdgeInsets.only(top: 6),

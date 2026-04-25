@@ -168,4 +168,16 @@ class TallerService {
     verificarRespuesta(res);
     return AsignacionModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
+
+  // CU31 – Confirmar llegada del técnico (cliente)
+  Future<AsignacionModel> confirmarLlegadaTecnico(int asignacionId) async {
+    final res = await http.patch(
+      Uri.parse('$_baseUrl/asignaciones/$asignacionId/confirmar-llegada'),
+      headers: await _headers(),
+      body: jsonEncode({}),
+    );
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    verificarRespuesta(res);
+    return AsignacionModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
 }

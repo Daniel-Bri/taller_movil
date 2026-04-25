@@ -18,6 +18,8 @@ import 'package:taller_movil/features/solicitudes/ver_solicitudes_disponibles/ve
 import 'package:taller_movil/features/comunicacion/ver_tecnico_mapa/ver_tecnico_mapa_page.dart';
 import 'package:taller_movil/features/comunicacion/compartir_ubicacion/compartir_ubicacion_page.dart';
 import 'package:taller_movil/features/comunicacion/chat/chat_page.dart';
+// Reportes / Mantenimiento
+import 'package:taller_movil/features/reportes/recordatorios_mantenimiento/recordatorios_mantenimiento_page.dart';
 
 void main() {
   runApp(const RutaSegura());
@@ -54,6 +56,8 @@ class RutaSegura extends StatelessWidget {
         '/comunicacion/compartir-ubicacion':  (_) => const CompartirUbicacionPage(),
         // CU18
         '/comunicacion/chat':                 (_) => const ChatPage(),
+        // CU32
+        '/mantenimiento/recordatorios':       (_) => const RecordatoriosMantenimientoPage(),
       },
     );
   }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/auth_service.dart';
+import 'package:taller_movil/services/emergencia_service.dart';
+import 'package:taller_movil/services/api_helper.dart';
 import 'package:taller_movil/shared/app_drawer.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -28,6 +30,56 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _logout() async {
     await _authService.logout();
     if (mounted) Navigator.pushReplacementNamed(context, '/login');
+  }
+
+  Future<void> _mostrarDialogoSOS(BuildContext ctx) async {
+    final confirmar = await showDialog<bool>(
+      context: ctx,
+      builder: (c) => AlertDialog(
+        title: const Row(children: [
+          Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 28),
+          SizedBox(width: 10),
+          Text('Botón SOS', style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.w800)),
+        ]),
+        content: const Text(
+          '¿Confirmas el envío de una alerta de emergencia urgente?\n\n'
+          'Se notificará a los talleres cercanos con tu ubicación actual.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Enviar SOS', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true || !mounted) return;
+
+    try {
+      await EmergenciaService().enviarSOS();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🆘 Alerta SOS enviada. Los talleres cercanos han sido notificados.'),
+          backgroundColor: AppColors.danger,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      Navigator.pushNamed(context, '/solicitudes/estado');
+    } catch (e) {
+      if (!mounted) return;
+      if (e is TokenExpiradoException) {
+        Navigator.pushReplacementNamed(context, '/login');
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')),
+                 backgroundColor: AppColors.danger),
+      );
+    }
   }
 
   String get _userName    => _user?['full_name'] ?? _user?['username'] ?? 'Usuario';
@@ -95,6 +147,12 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
 
+            // SOS Button — visible solo para clientes
+            if (_isCliente) ...[
+              const SizedBox(height: 24),
+              _SosButton(onTap: () => _mostrarDialogoSOS(context)),
+            ],
+
             const SizedBox(height: 28),
 
             // Section title — uppercase like web
@@ -153,6 +211,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     iconBg: const Color(0xFFECFDF5),
                     iconColor: AppColors.success,
                     onTap: () => Navigator.pushNamed(context, '/comunicacion/chat'),
+                  ),
+                  _QuickCard(
+                    icon: Icons.notifications_active_outlined,
+                    label: 'Recordatorios',
+                    iconBg: const Color(0xFFFEF2F2),
+                    iconColor: AppColors.danger,
+                    onTap: () => Navigator.pushNamed(context, '/mantenimiento/recordatorios'),
                   ),
                 ],
                 if (_isTaller) ...[
@@ -668,6 +733,58 @@ class _NavItem {
   final String label;
   final IconData icon;
   final String? route;
+}
+
+// ── SOS Button ────────────────────────────────────────────────
+class _SosButton extends StatelessWidget {
+  const _SosButton({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: AppColors.danger,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.danger.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.sos, color: Colors.white, size: 32),
+            SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('BOTÓN SOS',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                Text('Emergencia urgente — toca para activar',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ── Dashboard widgets ─────────────────────────────────────────

@@ -143,6 +143,28 @@ class EmergenciaService {
     throw Exception(detail ?? 'Error al guardar descripción (${res.statusCode})');
   }
 
+  // CU30 – Botón SOS (prioridad alta, auto-selecciona vehículo)
+  Future<Map<String, dynamic>> enviarSOS({
+    double? latitud,
+    double? longitud,
+  }) async {
+    final body = <String, dynamic>{};
+    if (latitud != null) body['latitud'] = latitud;
+    if (longitud != null) body['longitud'] = longitud;
+
+    final res = await http.post(
+      Uri.parse('$_baseUrl/sos'),
+      headers: await _authHeaders(),
+      body: jsonEncode(body),
+    );
+    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al enviar SOS (${res.statusCode})');
+  }
+
   /// CU10 – Incidente + asignación + URLs de fotos.
   Future<List<Map<String, dynamic>>> listarMisSolicitudes() async {
     final res = await http.get(

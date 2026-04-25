@@ -167,6 +167,19 @@ class _AppDrawerState extends State<AppDrawer> {
                           onTap: () => _navigate('/pagos/realizar')),
                     ],
                   ),
+                  _NavSection(
+                    id: 'mantenimiento',
+                    icon: Icons.build_circle_outlined,
+                    label: 'Mantenimiento',
+                    expanded: _expanded,
+                    onToggle: _toggle,
+                    children: [
+                      _NavChild(
+                        label: 'Recordatorios preventivos',
+                        onTap: () => _navigate('/mantenimiento/recordatorios'),
+                      ),
+                    ],
+                  ),
                 ],
 
                 // ── taller ───────────────────────────────────
