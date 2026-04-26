@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/comunicacion_service.dart';
+import 'package:taller_movil/services/taller_service.dart';
 
 // Argumentos de navegación para esta pantalla
 class VerTecnicoMapaArgs {
@@ -27,17 +28,20 @@ class VerTecnicoMapaPage extends StatefulWidget {
 }
 
 class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
-  final _service       = ComunicacionService();
-  final _mapController = MapController();
+  final _comunicacionService = ComunicacionService();
+  final _tallerService       = TallerService();
+  final _mapController       = MapController();
 
   UbicacionTecnicoModel? _ubicacion;
-  bool    _cargando   = true;
+  bool    _cargando        = true;
   String? _error;
   Timer?  _timer;
 
-  int     _asignacionId = 0;
+  int     _asignacionId  = 0;
   LatLng? _incidentePos;
-  bool    _argsLeidos   = false;
+  bool    _argsLeidos    = false;
+  bool    _sinAsignacion = false;
+  bool    _mapaListo     = false;  // true una vez que FlutterMap llama onMapReady
 
   static const _estadosActivos = {
     'aceptado', 'en_camino', 'en_sitio', 'en_reparacion',
@@ -51,16 +55,39 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
 
     final args =
         ModalRoute.of(context)?.settings.arguments as VerTecnicoMapaArgs?;
-    if (args == null) {
-      setState(() => _cargando = false);
-      return;
+    if (args != null) {
+      _asignacionId = args.asignacionId;
+      if (args.incidenteLatitud != null && args.incidenteLongitud != null) {
+        _incidentePos = LatLng(args.incidenteLatitud!, args.incidenteLongitud!);
+      }
+      _iniciarPolling();
+    } else {
+      // Sin args: buscar la asignación activa del cliente automáticamente
+      _cargarAsignacionActiva();
     }
+  }
 
-    _asignacionId = args.asignacionId;
-    if (args.incidenteLatitud != null && args.incidenteLongitud != null) {
-      _incidentePos = LatLng(args.incidenteLatitud!, args.incidenteLongitud!);
+  Future<void> _cargarAsignacionActiva() async {
+    setState(() { _cargando = true; _sinAsignacion = false; _error = null; });
+    try {
+      final asignaciones = await _tallerService.listarMisAsignacionesCliente();
+      final activa = asignaciones.firstWhere(
+        (a) => _estadosActivos.contains(a.estado),
+        orElse: () => throw Exception('sin_asignacion'),
+      );
+      if (!mounted) return;
+      _asignacionId = activa.id;
+      _iniciarPolling();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _cargando      = false;
+        _sinAsignacion = e.toString().contains('sin_asignacion');
+        if (!_sinAsignacion) {
+          _error = e.toString().replaceFirst('Exception: ', '');
+        }
+      });
     }
-    _iniciarPolling();
   }
 
   void _iniciarPolling() {
@@ -71,14 +98,15 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
   Future<void> _consultar() async {
     if (!mounted) return;
     try {
-      final ub = await _service.obtenerUbicacionTecnico(_asignacionId);
+      final ub = await _comunicacionService.obtenerUbicacionTecnico(_asignacionId);
       if (!mounted) return;
       setState(() {
         _ubicacion = ub;
         _cargando  = false;
         _error     = null;
       });
-      if (ub.latitud != null && ub.longitud != null) {
+      // Mover solo si el mapa ya fue renderizado (onMapReady disparado)
+      if (_mapaListo && ub.latitud != null && ub.longitud != null) {
         _mapController.move(LatLng(ub.latitud!, ub.longitud!), 15);
       }
       if (!_estadosActivos.contains(ub.estadoAsignacion)) {
@@ -109,8 +137,8 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
       body: _cargando
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary))
-          : _asignacionId == 0
-              ? _buildSinArgs()
+          : _sinAsignacion
+              ? _buildSinAsignacion()
               : _error != null
                   ? _buildError()
                   : _buildMapa(),
@@ -169,8 +197,8 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
     );
   }
 
-  // Sin args de navegación
-  Widget _buildSinArgs() {
+  // Sin asignación activa en este momento
+  Widget _buildSinAsignacion() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -189,7 +217,7 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Ver técnico en mapa',
+              'Sin servicio activo',
               style: TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
@@ -198,7 +226,7 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Para ver al técnico en el mapa, selecciona una solicitud activa desde tus incidentes y usa la opción "Ver en mapa".',
+              'No tienes ningún servicio en curso en este momento. Cuando un taller acepte tu solicitud podrás ver al técnico aquí.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13,
@@ -207,13 +235,13 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
               ),
             ),
             const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back, size: 18),
-              label: const Text('Volver'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary),
+            ElevatedButton.icon(
+              onPressed: _cargarAsignacionActiva,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Verificar de nuevo'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(
@@ -296,7 +324,11 @@ class _VerTecnicoMapaPageState extends State<VerTecnicoMapaPage> {
         Expanded(
           child: FlutterMap(
             mapController: _mapController,
-            options: MapOptions(initialCenter: center, initialZoom: 15),
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: 15,
+              onMapReady: () => setState(() => _mapaListo = true),
+            ),
             children: [
               TileLayer(
                 urlTemplate:

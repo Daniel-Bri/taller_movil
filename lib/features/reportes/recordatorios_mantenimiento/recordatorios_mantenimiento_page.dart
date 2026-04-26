@@ -32,7 +32,7 @@ class _RecordatoriosMantenimientoPageState
     try {
       final token = await _auth.getToken();
       final res = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/api/acceso/vehiculos/mantenimiento'),
+        Uri.parse('${AppConfig.baseUrl}/api/reportes/mantenimiento'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
@@ -61,6 +61,7 @@ class _RecordatoriosMantenimientoPageState
     switch (urgencia) {
       case 'alta': return AppColors.danger;
       case 'media': return const Color(0xFFD97706);
+      case 'baja': return AppColors.success;
       case 'sin_historial': return AppColors.primary;
       default: return AppColors.grey;
     }
@@ -70,6 +71,7 @@ class _RecordatoriosMantenimientoPageState
     switch (urgencia) {
       case 'alta': return Icons.warning_rounded;
       case 'media': return Icons.notifications_active_outlined;
+      case 'baja': return Icons.schedule_outlined;
       case 'sin_historial': return Icons.info_outline;
       default: return Icons.build_outlined;
     }
@@ -79,6 +81,7 @@ class _RecordatoriosMantenimientoPageState
     switch (urgencia) {
       case 'alta': return 'URGENTE';
       case 'media': return 'Próximo';
+      case 'baja': return 'Pronto';
       case 'sin_historial': return 'Sin historial';
       default: return urgencia ?? '';
     }
@@ -143,7 +146,7 @@ class _RecordatoriosMantenimientoPageState
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: _recordatorios.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
                         itemBuilder: (_, i) => _RecordatorioCard(
                           rec: _recordatorios[i],
                           urgenciaColor: _urgenciaColor(_recordatorios[i]['urgencia'] as String?),
@@ -184,6 +187,10 @@ class _RecordatorioCard extends StatelessWidget {
     final anio = rec['anio'] as int?;
     final dias = rec['dias_desde_ultimo_servicio'] as int?;
     final mensaje = rec['mensaje'] as String? ?? '';
+    final intervalo = rec['intervalo_recomendado'] as int?;
+    final recurrentes = (rec['problemas_recurrentes'] as List<dynamic>?)
+        ?.map((e) => e as String)
+        .toList() ?? [];
 
     return Container(
       decoration: BoxDecoration(
@@ -272,6 +279,47 @@ class _RecordatorioCard extends StatelessWidget {
                 // Mensaje
                 Text(mensaje,
                   style: const TextStyle(fontSize: 13, color: Color(0xFF374151), height: 1.4)),
+
+                // Ciclo estimado personalizado
+                if (intervalo != null) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.history, size: 14, color: Color(0xFF6B7280)),
+                      const SizedBox(width: 4),
+                      Text('Ciclo estimado de tu vehículo: ~$intervalo días',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                    ],
+                  ),
+                ],
+
+                // Problemas recurrentes
+                if (recurrentes.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.repeat, size: 14, color: Color(0xFFD97706)),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: recurrentes.map((p) => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF7ED),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFFED7AA)),
+                            ),
+                            child: Text(p,
+                              style: const TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.w600)),
+                          )).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
 
                 const SizedBox(height: 14),
 

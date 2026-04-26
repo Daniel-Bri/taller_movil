@@ -13,6 +13,7 @@ class AsignacionModel {
   final int? eta;
   final String? observacion;
   final String createdAt;
+  final bool esSos;
 
   AsignacionModel({
     required this.id,
@@ -23,6 +24,7 @@ class AsignacionModel {
     this.eta,
     this.observacion,
     required this.createdAt,
+    this.esSos = false,
   });
 
   factory AsignacionModel.fromJson(Map<String, dynamic> j) => AsignacionModel(
@@ -34,6 +36,7 @@ class AsignacionModel {
         eta:         j['eta'] as int?,
         observacion: j['observacion'] as String?,
         createdAt:   j['created_at'] as String,
+        esSos:       j['es_sos'] as bool? ?? false,
       );
 }
 
@@ -92,6 +95,17 @@ class TallerService {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
+  }
+
+  // ── CU18 · Asignaciones activas del cliente (para chat) ──
+  Future<List<AsignacionModel>> listarMisAsignacionesCliente() async {
+    final res = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/api/solicitudes/mis-asignaciones'),
+      headers: await _headers(),
+    );
+    verificarRespuesta(res);
+    final list = jsonDecode(res.body) as List<dynamic>;
+    return list.map((e) => AsignacionModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   // ── CU15 · Asignaciones activas ─────────────────────────
@@ -167,6 +181,21 @@ class TallerService {
     );
     verificarRespuesta(res);
     return AsignacionModel.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+  }
+
+  // CU16 – Taller rechaza su asignación para un incidente
+  Future<Map<String, dynamic>> rechazarSolicitud(int incidenteId) async {
+    final res = await http.patch(
+      Uri.parse('${AppConfig.baseUrl}/api/solicitudes/$incidenteId/rechazar'),
+      headers: await _headers(),
+      body: jsonEncode({}),
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al rechazar solicitud (${res.statusCode})');
   }
 
   // CU31 – Confirmar llegada del técnico (cliente)

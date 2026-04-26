@@ -53,6 +53,43 @@ class AuthService {
     throw Exception(err['detail'] ?? 'Error al registrarse');
   }
 
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    final token = await getToken();
+    final res = await http.post(
+      Uri.parse('$_baseUrl/change-password'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      body: jsonEncode({'current_password': currentPassword, 'new_password': newPassword}),
+    );
+    if (res.statusCode != 200) {
+      final err = jsonDecode(res.body);
+      throw Exception(err['detail'] ?? 'Error al cambiar la contraseña');
+    }
+  }
+
+  Future<void> requestReset(String email) async {
+    final res = await http.post(
+      Uri.parse('$_baseUrl/request-reset'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+    if (res.statusCode != 200) {
+      final err = jsonDecode(res.body);
+      throw Exception(err['detail'] ?? 'Error al enviar el correo');
+    }
+  }
+
+  Future<void> resetPassword(String email, String code, String newPassword) async {
+    final res = await http.post(
+      Uri.parse('$_baseUrl/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'code': code, 'new_password': newPassword}),
+    );
+    if (res.statusCode != 200) {
+      final err = jsonDecode(res.body);
+      throw Exception(err['detail'] ?? 'Error al restablecer la contraseña');
+    }
+  }
+
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);

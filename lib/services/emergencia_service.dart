@@ -123,6 +123,36 @@ class EmergenciaService {
     throw Exception(detail ?? 'Error al subir la foto (${res.statusCode})');
   }
 
+  /// CU08 – Subir un audio (multipart, campo `file`). Retorna transcripción + clasificación IA.
+  Future<Map<String, dynamic>> subirAudio({
+    required int incidenteId,
+    required Uint8List bytes,
+    String filename = 'audio.wav',
+    String? mimeType,
+  }) async {
+    final token = await _auth.getToken();
+    final uri   = Uri.parse('$_baseUrl/$incidenteId/audio');
+    final request = http.MultipartRequest('POST', uri);
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+
+    var fn = filename.trim();
+    if (fn.isEmpty) fn = 'audio.wav';
+    final ct = mimeType != null && mimeType.isNotEmpty
+        ? MediaType.parse(mimeType)
+        : MediaType('audio', 'wav');
+    request.files.add(http.MultipartFile.fromBytes('file', bytes,
+        filename: fn, contentType: ct));
+
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al subir el audio (${res.statusCode})');
+  }
+
   /// CU09 – Actualizar descripción (opcional tras crear el incidente).
   Future<Map<String, dynamic>> actualizarDescripcion({
     required int incidenteId,
@@ -178,5 +208,64 @@ class EmergenciaService {
       throw TokenExpiradoException();
     }
     throw Exception('Error al cargar solicitudes (${res.statusCode})');
+  }
+
+  /// CU11 – Cliente cancela su incidente.
+  Future<Map<String, dynamic>> cancelarSolicitud(int incidenteId) async {
+    final res = await http.patch(
+      Uri.parse('${AppConfig.baseUrl}/api/solicitudes/$incidenteId/cancelar'),
+      headers: await _authHeaders(),
+      body: jsonEncode({}),
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al cancelar solicitud (${res.statusCode})');
+  }
+
+  /// CU29 – Historial de servicios (cliente y taller).
+  Future<List<Map<String, dynamic>>> listarHistorial() async {
+    final res = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/api/reportes/historial'),
+      headers: await _authHeaders(),
+    );
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
+    }
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    throw Exception('Error al cargar historial (${res.statusCode})');
+  }
+
+  /// CU20 – Realizar pago de una cotización aceptada.
+  Future<Map<String, dynamic>> realizarPago({
+    required int cotizacionId,
+    required String metodo,
+  }) async {
+    final res = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/api/pagos/pagos'),
+      headers: await _authHeaders(),
+      body: jsonEncode({'cotizacion_id': cotizacionId, 'metodo': metodo}),
+    );
+    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al realizar el pago (${res.statusCode})');
+  }
+
+  /// CU20 – Listar cotizaciones del cliente (para pago).
+  Future<List<Map<String, dynamic>>> listarMisCotizaciones() async {
+    final res = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/api/pagos/mis-cotizaciones'),
+      headers: await _authHeaders(),
+    );
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List).cast<Map<String, dynamic>>();
+    }
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    throw Exception('Error al cargar cotizaciones (${res.statusCode})');
   }
 }
