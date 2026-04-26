@@ -161,4 +161,60 @@ class EmergenciaService {
     }
     throw Exception('Error al cargar solicitudes (${res.statusCode})');
   }
+
+  /// CU08 – Subir evidencia de audio.
+  Future<Map<String, dynamic>> subirAudio({
+    required int incidenteId,
+    required Uint8List bytes,
+    String filename = 'audio.m4a',
+    String mimeType = 'audio/mp4',
+    int? duracionSegundos,
+  }) async {
+    final token = await _auth.getToken();
+    final uri = Uri.parse('$_baseUrl/$incidenteId/audio');
+    final request = http.MultipartRequest('POST', uri);
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+        contentType: MediaType.parse(mimeType),
+      ),
+    );
+    if (duracionSegundos != null) {
+      request.fields['duracion_segundos'] = duracionSegundos.toString();
+    }
+    final streamed = await request.send();
+    final res = await http.Response.fromStream(streamed);
+    if (res.statusCode == 201) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al subir audio (${res.statusCode})');
+  }
+
+  /// CU11 – Gestionar solicitud (aceptar/rechazar/cancelar).
+  Future<Map<String, dynamic>> gestionarSolicitud({
+    required int incidenteId,
+    required String estado,
+    String? comentario,
+  }) async {
+    final body = <String, dynamic>{
+      'estado': estado,
+      if (comentario != null && comentario.isNotEmpty) 'comentario': comentario,
+    };
+    final res = await http.put(
+      Uri.parse('$_baseUrl/$incidenteId/estado'),
+      headers: await _authHeaders(),
+      body: jsonEncode(body),
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body) as Map<String, dynamic>;
+    if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+    final detail = res.body.isNotEmpty
+        ? (jsonDecode(res.body) as Map<String, dynamic>)['detail']
+        : null;
+    throw Exception(detail ?? 'Error al gestionar solicitud (${res.statusCode})');
+  }
 }

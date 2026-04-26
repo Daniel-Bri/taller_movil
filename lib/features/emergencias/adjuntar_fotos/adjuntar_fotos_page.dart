@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:taller_movil/features/emergencias/enviar_audio/enviar_audio_page.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/emergencia_service.dart';
 import 'package:taller_movil/services/api_helper.dart';
@@ -235,6 +236,24 @@ class _AdjuntarFotosPageState extends State<AdjuntarFotosPage> {
                 child: const Text('Omitir y volver al inicio'),
               ),
             ),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _uploading
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EnviarAudioPage(incidenteId: widget.incidenteId),
+                          ),
+                        );
+                      },
+                icon: const Icon(Icons.mic_none_rounded),
+                label: const Text('Grabar / enviar audio'),
+              ),
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

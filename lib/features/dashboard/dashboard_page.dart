@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/auth_service.dart';
+import 'package:taller_movil/services/notificacion_service.dart';
 import 'package:taller_movil/shared/app_drawer.dart';
+import 'dart:async';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -12,17 +14,36 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   final _authService = AuthService();
+  final _notifService = NotificacionService();
   Map<String, dynamic>? _user;
+  int _notifsNoLeidas = 0;
+  Timer? _notifPoll;
 
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _cargarNotifNoLeidas();
+    _notifPoll = Timer.periodic(const Duration(seconds: 20), (_) => _cargarNotifNoLeidas());
+  }
+
+  @override
+  void dispose() {
+    _notifPoll?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadUser() async {
     final user = await _authService.getUser();
     setState(() => _user = user);
+  }
+
+  Future<void> _cargarNotifNoLeidas() async {
+    try {
+      final rows = await _notifService.listarMias();
+      if (!mounted) return;
+      setState(() => _notifsNoLeidas = rows.where((x) => x['leida'] != true).length);
+    } catch (_) {}
   }
 
   Future<void> _logout() async {
@@ -307,6 +328,38 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       actions: [
+        IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_none_rounded, size: 22),
+              if (_notifsNoLeidas > 0)
+                Positioned(
+                  top: -5,
+                  right: -7,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF2B2D),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      _notifsNoLeidas > 99 ? '99+' : '$_notifsNoLeidas',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          tooltip: 'Notificaciones',
+          onPressed: () async {
+            await Navigator.pushNamed(context, '/comunicacion/notificaciones');
+            if (mounted) _cargarNotifNoLeidas();
+          },
+          color: const Color(0xFF6B7280),
+        ),
         IconButton(
           icon: const Icon(Icons.logout_outlined, size: 20),
           tooltip: 'Cerrar sesión',
