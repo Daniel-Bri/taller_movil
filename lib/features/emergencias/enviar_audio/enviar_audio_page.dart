@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/emergencia_service.dart';
 import 'package:taller_movil/services/api_helper.dart';
@@ -17,13 +20,21 @@ class EnviarAudioPage extends StatefulWidget {
 
 class _EnviarAudioPageState extends State<EnviarAudioPage> {
   final _svc = EmergenciaService();
+  final AudioRecorder _recorder = AudioRecorder();
 
   String? _nombreArchivo;
   Uint8List? _audioBytes;
   String? _mimeType;
   bool _uploading = false;
+  bool _grabando = false;
   String _error = '';
   Map<String, dynamic>? _resultado;
+
+  @override
+  void dispose() {
+    _recorder.dispose();
+    super.dispose();
+  }
 
   Future<void> _seleccionarAudio() async {
     setState(() { _error = ''; _resultado = null; _audioBytes = null; _nombreArchivo = null; });
@@ -73,6 +84,73 @@ class _EnviarAudioPageState extends State<EnviarAudioPage> {
     }
   }
 
+  Future<void> _iniciarGrabacion() async {
+    setState(() {
+      _error = '';
+      _resultado = null;
+    });
+
+    try {
+      final permitido = await _recorder.hasPermission();
+      if (!permitido) {
+        setState(() => _error = 'Permiso de micrófono denegado.');
+        return;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final path = '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+      await _recorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          sampleRate: 44100,
+          bitRate: 128000,
+        ),
+        path: path,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _grabando = true;
+        _audioBytes = null;
+        _nombreArchivo = null;
+        _mimeType = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'No se pudo iniciar la grabación.');
+    }
+  }
+
+  Future<void> _detenerGrabacion() async {
+    try {
+      final path = await _recorder.stop();
+      if (!mounted) return;
+
+      if (path == null || path.isEmpty) {
+        setState(() {
+          _grabando = false;
+          _error = 'No se pudo guardar la grabación.';
+        });
+        return;
+      }
+
+      final bytes = await File(path).readAsBytes();
+      setState(() {
+        _grabando = false;
+        _audioBytes = bytes;
+        _nombreArchivo = path.split(Platform.pathSeparator).last;
+        _mimeType = 'audio/m4a';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _grabando = false;
+        _error = 'No se pudo detener la grabación.';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final trans   = _resultado?['transcripcion'] as Map<String, dynamic>?;
@@ -96,17 +174,46 @@ class _EnviarAudioPageState extends State<EnviarAudioPage> {
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.text)),
           const SizedBox(height: 6),
           const Text(
-            'Selecciona un archivo de audio WAV/MP3/OGG. El sistema lo transcribirá '
-            'y clasificará el tipo de incidente automáticamente.',
+            'Graba tu voz o selecciona un archivo de audio. El sistema lo transcribirá '
+            'y clasificará el tipo de incidente automáticamente con IA.',
             style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 20),
+
+          // ── Grabación por micrófono ─────────────────────────
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _uploading
+                  ? null
+                  : (_grabando ? _detenerGrabacion : _iniciarGrabacion),
+              icon: Icon(_grabando ? Icons.stop_rounded : Icons.mic_rounded),
+              label: Text(_grabando ? 'Detener grabación' : 'Grabar audio'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _grabando ? AppColors.danger : AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+          if (_grabando) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Grabando... presiona "Detener grabación" cuando termines.',
+              style: TextStyle(fontSize: 12, color: AppColors.danger, fontWeight: FontWeight.w600),
+            ),
+          ],
+          const SizedBox(height: 10),
+          const Center(
+            child: Text('o', style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
+          ),
+          const SizedBox(height: 10),
 
           // ── Selector ───────────────────────────────────────
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: _uploading ? null : _seleccionarAudio,
+              onPressed: (_uploading || _grabando) ? null : _seleccionarAudio,
               icon: const Icon(Icons.audio_file_outlined, color: AppColors.primary),
               label: Text(
                 _nombreArchivo ?? 'Seleccionar archivo de audio',
@@ -129,7 +236,7 @@ class _EnviarAudioPageState extends State<EnviarAudioPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _uploading ? null : _subirAudio,
+                onPressed: (_uploading || _grabando) ? null : _subirAudio,
                 icon: _uploading
                     ? const SizedBox(width: 18, height: 18,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -260,7 +367,7 @@ class _EnviarAudioPageState extends State<EnviarAudioPage> {
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: _uploading
+                onPressed: (_uploading || _grabando)
                     ? null
                     : () => Navigator.pushNamedAndRemoveUntil(
                         context, '/dashboard', (_) => false),

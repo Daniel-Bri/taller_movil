@@ -149,8 +149,15 @@ class RutaSegura extends StatelessWidget {
 }
 
 // ── Splash Router ────────────────────────────────────────────
-class _SplashRouter extends StatelessWidget {
+class _SplashRouter extends StatefulWidget {
   const _SplashRouter();
+
+  @override
+  State<_SplashRouter> createState() => _SplashRouterState();
+}
+
+class _SplashRouterState extends State<_SplashRouter> {
+  bool _pushInitDone = false;
 
   @override
   Widget build(BuildContext context) {
@@ -164,6 +171,10 @@ class _SplashRouter extends StatelessWidget {
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
           );
+        }
+        if (snapshot.data == true && !_pushInitDone) {
+          _pushInitDone = true;
+          NotificacionService().inicializar(context).ignore();
         }
         return snapshot.data! ? const DashboardPage() : const IniciarSesionPage();
       },
