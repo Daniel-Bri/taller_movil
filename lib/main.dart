@@ -1,6 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/auth_service.dart';
+import 'package:taller_movil/services/notificacion_service.dart';
 import 'package:taller_movil/shared/acceso_denegado_page.dart';
 
 // Acceso y Registro
@@ -57,7 +59,9 @@ import 'package:taller_movil/features/reportes/metricas_taller/metricas_taller_p
 import 'package:taller_movil/features/reportes/metricas_globales/metricas_globales_page.dart';
 import 'package:taller_movil/features/reportes/auditoria/auditoria_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const RutaSegura());
 }
 

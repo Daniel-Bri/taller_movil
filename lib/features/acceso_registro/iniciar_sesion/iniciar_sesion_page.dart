@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/auth_service.dart';
+import 'package:taller_movil/services/notificacion_service.dart';
 
 // CU02 - Iniciar Sesión
 class IniciarSesionPage extends StatefulWidget {
@@ -32,7 +33,10 @@ class _IniciarSesionPageState extends State<IniciarSesionPage> {
     setState(() { _loading = true; _serverError = ''; });
     try {
       await _authService.login(_emailCtrl.text.trim(), _passwordCtrl.text);
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      if (!mounted) return;
+      // Inicializar FCM y registrar token en backend tras login exitoso
+      NotificacionService().inicializar(context).ignore();
+      Navigator.pushReplacementNamed(context, '/dashboard');
     } catch (e) {
       setState(() { _serverError = e.toString().replaceFirst('Exception: ', ''); });
     } finally {

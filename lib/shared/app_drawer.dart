@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
 import 'package:taller_movil/services/auth_service.dart';
+import 'package:taller_movil/services/notificacion_service.dart';
 
 // Modelos internos para nav declarativo
 class _ItemDef {
@@ -132,6 +133,7 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   Future<void> _logout() async {
+    await NotificacionService().eliminarToken();
     await _auth.logout();
     if (mounted) Navigator.pushReplacementNamed(context, '/login');
   }
