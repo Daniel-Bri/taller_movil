@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:taller_movil/core/theme/app_colors.dart';
+import 'package:taller_movil/services/api_helper.dart';
 import 'package:taller_movil/services/auth_service.dart';
 import 'package:taller_movil/services/comunicacion_service.dart';
 import 'package:taller_movil/services/taller_service.dart';
@@ -84,11 +85,21 @@ class _ChatPageState extends State<ChatPage> {
         lista = await _tallerSvc.listarAsignacionesActivas();
       }
       if (mounted) setState(() { _asignaciones = lista; _cargandoLista = false; });
+    } on TokenExpiradoException {
+      if (!mounted) return;
+      await _auth.logout();
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
     } catch (e) {
-      if (mounted) setState(() {
-        _errorLista = 'No se pudieron cargar las conversaciones.';
-        _cargandoLista = false;
-      });
+      if (mounted) {
+        setState(() {
+          final msg = e.toString().replaceFirst('Exception: ', '').trim();
+          _errorLista = msg.isEmpty
+              ? 'No se pudieron cargar las conversaciones.'
+              : 'No se pudieron cargar las conversaciones: $msg';
+          _cargandoLista = false;
+        });
+      }
     }
   }
 
@@ -310,7 +321,7 @@ class _ChatPageState extends State<ChatPage> {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _asignaciones.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, idx) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
         final asig = _asignaciones[i];
         return Card(

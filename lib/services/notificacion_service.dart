@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -10,7 +11,9 @@ import 'package:taller_movil/services/auth_service.dart';
 // Handler de mensajes en background (debe ser función top-level)
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
-  // Firebase ya está inicializado cuando se llega aquí desde main()
+  try {
+    await Firebase.initializeApp();
+  } catch (_) {}
   _NotificacionLocal.mostrar(message);
 }
 
@@ -68,12 +71,29 @@ class NotificacionService {
   factory NotificacionService() => _instance;
   NotificacionService._();
 
-  final _fcm  = FirebaseMessaging.instance;
+  FirebaseMessaging get _fcm => FirebaseMessaging.instance;
   final _auth = AuthService();
   String? _token;
 
+  Future<bool> _asegurarFirebase() async {
+    try {
+      Firebase.app();
+      return true;
+    } catch (_) {
+      try {
+        await Firebase.initializeApp();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+  }
+
   /// Inicializar FCM + notificaciones locales. Llamar una vez al arrancar la app.
   Future<void> inicializar(BuildContext? context) async {
+    final firebaseOk = await _asegurarFirebase();
+    if (!firebaseOk) return;
+
     await _NotificacionLocal.inicializar();
 
     // Solicitar permiso (Android 13+ / iOS)
@@ -105,6 +125,9 @@ class NotificacionService {
 
   /// Eliminar token del backend al cerrar sesión.
   Future<void> eliminarToken() async {
+    final firebaseOk = await _asegurarFirebase();
+    if (!firebaseOk) return;
+
     if (_token == null) return;
     try {
       final t = await _auth.getToken();
@@ -122,6 +145,9 @@ class NotificacionService {
   }
 
   Future<void> _registrarToken(String token) async {
+    final firebaseOk = await _asegurarFirebase();
+    if (!firebaseOk) return;
+
     try {
       final t = await _auth.getToken();
       if (t == null) return; // usuario no autenticado aún

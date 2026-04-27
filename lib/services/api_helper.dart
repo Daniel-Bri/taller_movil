@@ -8,10 +8,14 @@ class TokenExpiradoException implements Exception {}
 void verificarRespuesta(http.Response res, {int esperado = 200}) {
   if (res.statusCode == esperado) return;
   if (res.statusCode == 401 || res.statusCode == 403) throw TokenExpiradoException();
+  Object? detail;
   try {
     final body = jsonDecode(res.body);
-    throw Exception(body['detail'] ?? 'Error ${res.statusCode}');
-  } catch (_) {
-    throw Exception('Error ${res.statusCode}');
-  }
+    if (body is Map<String, dynamic>) {
+      detail = body['detail'] ?? body['message'] ?? body['msg'];
+    } else if (body is String) {
+      detail = body;
+    }
+  } catch (_) {}
+  throw Exception(detail?.toString() ?? 'Error ${res.statusCode}');
 }

@@ -62,7 +62,11 @@ import 'package:taller_movil/features/reportes/auditoria/auditoria_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    // Si Firebase no está configurado en este build/dispositivo,
+    // no bloqueamos el arranque de la app.
+    await Firebase.initializeApp();
+  } catch (_) {}
   runApp(const RutaSegura());
 }
 
